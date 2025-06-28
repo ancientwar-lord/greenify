@@ -96,7 +96,7 @@ const Hero: React.FC<HeroProps> = ({ setActiveTab }) => {
               onClick={() => setActiveTab('marketplace')}
               className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
             >
-              Explore Market →
+              Explore Markets →
             </button>
           </div>
 
