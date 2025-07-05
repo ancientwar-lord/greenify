@@ -33,8 +33,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
 
   return (
     <>
-      <nav className="bg-white shadow-lg border-b border-green-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 shadow-lg border-b border-green-100">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <button
               onClick={() => setActiveTab('home')}
@@ -51,14 +51,14 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                    className={`flex items-center group space-x-2 px-3 py-2 rounded-lg transition-all duration-200  ${
                       activeTab === item.id
                         ? 'bg-green-100 text-green-700 font-medium'
-                        : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
+                        : 'text-gray-600 hover:text-green-600 hover:bg-green-100 '
                     }`}
                   >
-                    <Icon className="h-5 w-5" />
-                    <span>{item.label}</span>
+                    <Icon className={`h-5 w-5 ${activeTab === item.id ? 'opacity-100': 'opacity-0 group-hover:opacity-100'} `} />
+                    <span className='font-semibold'>{item.label}</span>
                   </button>
                 );
               })}
@@ -67,24 +67,6 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
             <div className="flex items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-4">
-                  <div className="hidden md:flex items-center space-x-3">
-                    <img
-                      src={user.user_metadata?.avatar || 'https://images.pexels.com/photos/1542085/pexels-photo-1542085.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1'}
-                      alt={user.user_metadata?.name || 'User'}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <div className="flex items-center space-x-2">
-                      <span className="text-gray-700 font-medium">
-                        {user.user_metadata?.name || 'User'}
-                      </span>
-                      {isGuest && (
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
-                          <UserCheck className="h-3 w-3" />
-                          <span>Guest</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
                   
                   {isGuest ? (
                     <div className="flex items-center space-x-2">
