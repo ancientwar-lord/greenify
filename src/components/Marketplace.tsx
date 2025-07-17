@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
-import { Search, Filter, Star, MapPin, ShoppingCart, Heart, Truck, Shield } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Star, MapPin, ShoppingCart, Heart, Truck, Shield, Grid, List, ArrowRight, Award, Timer } from 'lucide-react';
 import { products, vendors } from '../data/mockData';
 
 const Marketplace: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'products' | 'vendors'>('products');
+  const [gridView, setGridView] = useState<'grid' | 'list'>('grid');
+  const [isVisible, setIsVisible] = useState(false);
+  const [favoriteItems, setFavoriteItems] = useState<string[]>([]);
 
   const categories = ['all', 'Vegetables', 'Fruits', 'Pantry', 'Bakery', 'Dairy'];
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -16,238 +23,310 @@ const Marketplace: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-green-600 rounded-2xl p-8 text-white mb-8">
-        <h1 className="text-3xl font-bold mb-2">Organic Marketplace</h1>
-        <p className="text-emerald-100 text-lg">Discover fresh, local, and sustainable products from your community</p>
+  const toggleFavorite = (productId: string) => {
+    setFavoriteItems(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const ProductCard = ({ product, index }: { product: any; index: number }) => (
+    <div
+      className={`group floating-card bg-gradient-to-br from-white to-gray-50 border-2 border-white/50 overflow-hidden animate-fade-in-up animation-delay-${(index % 6 + 1) * 100}`}
+    >
+      <div className="relative overflow-hidden">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="absolute top-3 right-3 space-y-2">
+          <button
+            onClick={() => toggleFavorite(product.id)}
+            className={`p-2 rounded-full backdrop-blur-sm transition-all duration-300 hover:scale-110 ${
+              favoriteItems.includes(product.id)
+                ? 'bg-red-500 text-white'
+                : 'bg-white/80 text-gray-600 hover:bg-white'
+            }`}
+          >
+            <Heart className={`h-4 w-4 ${favoriteItems.includes(product.id) ? 'fill-current' : ''}`} />
+          </button>
+          {product.organic && (
+            <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
+              <Award className="h-3 w-3" />
+              <span>Organic</span>
+            </div>
+          )}
+        </div>
+        <div className="absolute bottom-3 left-3">
+          <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-gray-900">
+            ${product.price}
+          </div>
+        </div>
       </div>
 
-      {/* Search and Filter */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search for organic products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="font-bold text-gray-900 text-lg group-hover:text-primary-600 transition-colors duration-300">
+            {product.name}
+          </h3>
+          <div className="flex items-center space-x-1 text-yellow-500">
+            <Star className="h-4 w-4 fill-current" />
+            <span className="text-sm font-medium text-gray-600">{product.rating}</span>
           </div>
-          
-          <div className="flex space-x-4">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category === 'all' ? 'All Categories' : category}
-                </option>
-              ))}
-            </select>
-            
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('products')}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  viewMode === 'products' ? 'bg-white shadow-sm text-green-600' : 'text-gray-600'
-                }`}
-              >
-                Products
-              </button>
-              <button
-                onClick={() => setViewMode('vendors')}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  viewMode === 'vendors' ? 'bg-white shadow-sm text-green-600' : 'text-gray-600'
-                }`}
-              >
-                Vendors
-              </button>
+        </div>
+
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
+
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-1 text-gray-500 text-sm">
+            <MapPin className="h-4 w-4" />
+            <span>{product.vendor}</span>
+          </div>
+          <div className="flex items-center space-x-1 text-primary-600 text-sm">
+            <Truck className="h-4 w-4" />
+            <span>Free delivery</span>
+          </div>
+        </div>
+
+        <button className="w-full btn-primary group/btn">
+          <span className="flex items-center justify-center space-x-2">
+            <ShoppingCart className="h-4 w-4 group-hover/btn:scale-110 transition-transform duration-300" />
+            <span>Add to Cart</span>
+            <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+
+  const VendorCard = ({ vendor, index }: { vendor: any; index: number }) => (
+    <div
+      className={`group floating-card bg-gradient-to-br from-white to-gray-50 border-2 border-white/50 p-6 animate-fade-in-up animation-delay-${(index % 4 + 1) * 150}`}
+    >
+      <div className="flex items-start space-x-4 mb-4">
+        <img
+          src={vendor.avatar}
+          alt={vendor.name}
+          className="w-16 h-16 rounded-xl object-cover ring-4 ring-primary-100 group-hover:ring-primary-200 transition-all duration-300"
+        />
+        <div className="flex-1">
+          <h3 className="font-bold text-gray-900 text-lg group-hover:text-primary-600 transition-colors duration-300">
+            {vendor.name}
+          </h3>
+          <div className="flex items-center space-x-4 mt-1">
+            <div className="flex items-center space-x-1 text-yellow-500">
+              <Star className="h-4 w-4 fill-current" />
+              <span className="text-sm font-medium text-gray-600">{vendor.rating}</span>
+            </div>
+            <div className="flex items-center space-x-1 text-gray-500 text-sm">
+              <MapPin className="h-4 w-4" />
+              <span>{vendor.location}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Products View */}
-      {viewMode === 'products' && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-200 group">
-              <div className="relative">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-3 left-3">
-                  {product.organic && (
-                    <span className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-                      Organic
-                    </span>
-                  )}
-                </div>
-                <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors">
-                  <Heart className="h-4 w-4 text-gray-600" />
+      <p className="text-gray-600 text-sm mb-4">{vendor.description}</p>
+
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="bg-green-50 p-3 rounded-lg text-center">
+          <div className="text-lg font-bold text-green-600">{vendor.products}</div>
+          <div className="text-xs text-green-700">Products</div>
+        </div>
+        <div className="bg-blue-50 p-3 rounded-lg text-center">
+          <div className="text-lg font-bold text-blue-600">{vendor.orders}</div>
+          <div className="text-xs text-blue-700">Orders</div>
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-2 mb-4">
+        {vendor.certifications.map((cert: string, idx: number) => (
+          <span
+            key={idx}
+            className="bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs font-medium"
+          >
+            {cert}
+          </span>
+        ))}
+      </div>
+
+      <button className="w-full btn-primary group/btn">
+        <span className="flex items-center justify-center space-x-2">
+          <span>View Store</span>
+          <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
+        </span>
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary-50/50 via-white to-secondary-50/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className={`bg-gradient-to-r from-primary-600 to-secondary-600 rounded-3xl p-8 text-white mb-8 relative overflow-hidden animate-fade-in-up ${isVisible ? '' : 'opacity-0'}`}>
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-600/90 to-secondary-600/90"></div>
+          <div className="relative z-10 text-center">
+            <h1 className="text-3xl lg:text-4xl font-bold mb-3">Organic Marketplace</h1>
+            <p className="text-lg text-white/90 max-w-3xl mx-auto">
+              Discover fresh, local, and sustainable products from your community. Support local farmers and enjoy the freshest organic produce.
+            </p>
+          </div>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="card p-6 mb-8 animate-fade-in-up animation-delay-200">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search for organic products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input-field pl-12 text-lg"
+              />
+            </div>
+            
+            <div className="flex flex-wrap gap-4">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="input-field min-w-[150px]"
+              >
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {category === 'all' ? 'All Categories' : category}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex bg-gray-100 rounded-xl p-1">
+                <button
+                  onClick={() => setViewMode('products')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                    viewMode === 'products'
+                      ? 'bg-white text-primary-600 shadow-lg'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Products
                 </button>
-                {!product.inStock && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Out of Stock
-                    </span>
-                  </div>
-                )}
+                <button
+                  onClick={() => setViewMode('vendors')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                    viewMode === 'vendors'
+                      ? 'bg-white text-primary-600 shadow-lg'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Vendors
+                </button>
               </div>
-              
-              <div className="p-4">
-                <h3 className="font-bold text-gray-900 mb-2">{product.name}</h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
-                
-                <div className="flex items-center space-x-2 text-sm text-gray-500 mb-3">
-                  <MapPin className="h-4 w-4" />
-                  <span>{product.location}</span>
-                </div>
-                
-                <div className="flex items-center space-x-2 mb-3">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${
-                          i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-600">({product.reviews})</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-2xl font-bold text-green-600">${product.price}</span>
-                    <span className="text-gray-500 text-sm ml-1">/ lb</span>
-                  </div>
+
+              {viewMode === 'products' && (
+                <div className="flex bg-gray-100 rounded-xl p-1">
                   <button
-                    disabled={!product.inStock}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center space-x-2"
+                    onClick={() => setGridView('grid')}
+                    className={`p-2 rounded-lg transition-all duration-300 ${
+                      gridView === 'grid'
+                        ? 'bg-white text-primary-600 shadow-lg'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
                   >
-                    <ShoppingCart className="h-4 w-4" />
-                    <span>Add</span>
+                    <Grid className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => setGridView('list')}
+                    className={`p-2 rounded-lg transition-all duration-300 ${
+                      gridView === 'list'
+                        ? 'bg-white text-primary-600 shadow-lg'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <List className="h-5 w-5" />
                   </button>
                 </div>
-                
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-sm text-gray-600">
-                    From <span className="font-medium text-green-600">{product.vendorName}</span>
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Vendors View */}
-      {viewMode === 'vendors' && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {vendors.map((vendor) => (
-            <div key={vendor.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-200">
-              <div className="flex items-center space-x-4 mb-4">
-                <img
-                  src={vendor.avatar}
-                  alt={vendor.name}
-                  className="w-16 h-16 rounded-full object-cover"
-                />
-                <div>
-                  <h3 className="font-bold text-gray-900">{vendor.name}</h3>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <MapPin className="h-4 w-4" />
-                    <span>{vendor.location}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <p className="text-gray-600 text-sm mb-4">{vendor.description}</p>
-              
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Rating</span>
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="font-medium">{vendor.rating}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Products</span>
-                  <span className="font-medium">{vendor.products}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Green Score</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-20 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{ width: `${vendor.greenScore}%` }}
-                      ></div>
-                    </div>
-                    <span className="font-medium text-green-600">{vendor.greenScore}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Certifications</h4>
-                <div className="flex flex-wrap gap-2">
-                  {vendor.certifications.map((cert, index) => (
-                    <span
-                      key={index}
-                      className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1"
-                    >
-                      <Shield className="h-3 w-3" />
-                      <span>{cert}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-              
-              <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2">
-                <span>View Products</span>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Trust Indicators */}
-      <div className="mt-12 bg-green-50 rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">Why Shop with Greenify?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center">
-            <div className="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Shield className="h-8 w-8 text-white" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Verified Organic</h3>
-            <p className="text-gray-600">All products are certified organic and sustainably sourced from local farms.</p>
           </div>
-          
-          <div className="text-center">
-            <div className="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Truck className="h-8 w-8 text-white" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Local Delivery</h3>
-            <p className="text-gray-600">Fast, eco-friendly delivery from your local community vendors.</p>
+        </div>
+
+        {/* Results Header */}
+        <div className="flex items-center justify-between mb-6 animate-fade-in-up animation-delay-300">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {viewMode === 'products' ? 'Fresh Products' : 'Local Vendors'}
+            <span className="text-primary-600 ml-2">
+              ({viewMode === 'products' ? filteredProducts.length : vendors.length})
+            </span>
+          </h2>
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Timer className="h-4 w-4" />
+            <span>Updated 5 minutes ago</span>
           </div>
-          
-          <div className="text-center">
-            <div className="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Heart className="h-8 w-8 text-white" />
+        </div>
+
+        {/* Products Grid */}
+        {viewMode === 'products' && (
+          <div className={`grid gap-6 ${
+            gridView === 'grid' 
+              ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+              : 'grid-cols-1'
+          }`}>
+            {filteredProducts.map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))}
+          </div>
+        )}
+
+        {/* Vendors Grid */}
+        {viewMode === 'vendors' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {vendors.map((vendor, index) => (
+              <VendorCard key={vendor.id} vendor={vendor} index={index} />
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {viewMode === 'products' && filteredProducts.length === 0 && (
+          <div className="text-center py-16 animate-fade-in-up">
+            <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Search className="h-10 w-10 text-gray-400" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Support Local</h3>
-            <p className="text-gray-600">Every purchase directly supports small-scale organic farmers and vendors.</p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">No products found</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Try adjusting your search terms or browse different categories to find what you're looking for.
+            </p>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedCategory('all');
+              }}
+              className="btn-primary"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
+
+        {/* Call to Action */}
+        <div className="mt-16 text-center animate-fade-in-up animation-delay-500">
+          <div className="card bg-gradient-to-br from-primary-50 to-secondary-50 border-primary-200 p-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              Become a Vendor
+            </h3>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              Join our marketplace and connect with customers who value fresh, local, and organic products. 
+              Start selling your products today!
+            </p>
+            <button className="btn-primary px-8 py-3">
+              <span className="flex items-center space-x-2">
+                <span>Apply Now</span>
+                <ArrowRight className="h-5 w-5" />
+              </span>
+            </button>
           </div>
         </div>
       </div>
